@@ -1,0 +1,36 @@
+C++ 编译:
+cmake ../FastDeploy/ -DENABLE_ORT_BACKEND=OFF \
+    -DENABLE_PADDLE_BACKEND=ON \
+    -DENABLE_OPENVINO_BACKEND=OFF \
+    -DENABLE_TRT_BACKEND=OFF \
+    -DWITH_GPU=OFF \
+    -DWITH_DCU=ON \
+    -DCMAKE_INSTALL_PREFIX=${PWD}/compiled_fastdeploy_sdk \
+    -DENABLE_VISION=ON \
+    -DENABLE_TEXT=ON \
+    -DPADDLEINFERENCE_DIRECTORY=/home/paddle/Paddle-2.5.2/build/paddle_inference_install_dir \
+    -DPADDLEINFERENCE_API_CUSTOM_OP=ON \
+    -DPADDLEINFERENCE_API_COMPAT_2_5_x=ON \
+    -DPADDLEINFERENCE_VERSION=2.5.2 \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_CXX_COMPILER=${ROCM_PATH}/bin/hipcc
+
+Python 编译:
+export CXX=${ROCM_PATH}/bin/hipcc
+export ENABLE_ORT_BACKEND=OFF
+export ENABLE_PADDLE_BACKEND=ON
+export ENABLE_OPENVINO_BACKEND=OFF
+export ENABLE_TRT_BACKEND=OFF
+export WITH_GPU=OFF
+export WITH_DCU=ON
+export ENABLE_VISION=ON
+export ENABLE_TEXT=ON
+export PADDLEINFERENCE_DIRECTORY=/home/paddle/Paddle-2.5.2/build/paddle_inference_install_dir
+export PADDLEINFERENCE_API_CUSTOM_OP=ON
+export PADDLEINFERENCE_API_COMPAT_2_5_x=ON
+export PADDLEINFERENCE_VERSION=2.5.2
+cd FastDeploy/python
+python3 setup.py build
+python3 setup.py bdist_wheel
+
+
