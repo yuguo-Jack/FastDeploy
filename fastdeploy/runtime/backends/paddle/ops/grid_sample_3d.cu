@@ -12,7 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
+#else
 #include <cuda.h>
+#endif
 
 #include "grid_sample_3d.h"
 
@@ -294,10 +298,10 @@ std::vector<paddle::Tensor> GridSample3DCUDAForward(
           grid.data<float>(), output.data<float>(), enum_mode,
           enum_padding_mode, align_corners);
 
-  cudaError_t error_check;
-  error_check = cudaGetLastError();
-  if (error_check != cudaSuccess) {
-    printf("%s\n", cudaGetErrorString(error_check));
+  GPU(Error_t) error_check;
+  error_check = GPU(GetLastError)();
+  if (error_check != GPU(Success)) {
+    printf("%s\n", GPU(GetErrorString)(error_check));
   }
   // printf("size: %d, %d, %d, %d, %d, %d \n", n, c, out_d, out_h, count,
   // block_num);

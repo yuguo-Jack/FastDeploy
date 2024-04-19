@@ -15,13 +15,17 @@
 #include "fastdeploy/core/fd_tensor.h"
 #include "fastdeploy/vision/common/processors/proc_lib.h"
 #include "opencv2/core/core.hpp"
-
+#include "fastdeploy/utils/gpu_macro.h"
 #ifdef ENABLE_FLYCV
 #include "flycv.h"  // NOLINT
 #endif
 
 #ifdef WITH_GPU
 #include <cuda_runtime_api.h>
+#endif
+
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
 #endif
 
 namespace fastdeploy {
@@ -96,8 +100,8 @@ struct FASTDEPLOY_DECL Mat {
 #ifdef ENABLE_FLYCV
   fcv::Mat fcv_mat;
 #endif
-#ifdef WITH_GPU
-  cudaStream_t stream = nullptr;
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  GPU(Stream_t) stream = nullptr;
 #endif
   // Currently, fd_tensor is only used by CUDA and CV-CUDA,
   // OpenCV and FlyCV are not using it.
@@ -116,9 +120,9 @@ struct FASTDEPLOY_DECL Mat {
   // refer to manager.cc
   FDTensor* input_cache = nullptr;
   FDTensor* output_cache = nullptr;
-#ifdef WITH_GPU
-  cudaStream_t Stream() const { return stream; }
-  void SetStream(cudaStream_t s) { stream = s; }
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  GPU(Stream_t) Stream() const { return stream; }
+  void SetStream(GPU(Stream_t) s) { stream = s; }
 #endif
 
   // Transfer the vision::Mat to FDTensor

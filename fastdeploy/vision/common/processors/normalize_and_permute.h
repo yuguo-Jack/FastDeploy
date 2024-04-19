@@ -31,7 +31,7 @@ class FASTDEPLOY_DECL NormalizeAndPermute : public Processor {
 #ifdef ENABLE_FLYCV
   bool ImplByFlyCV(FDMat* mat);
 #endif
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
   bool ImplByCuda(FDMat* mat);
   bool ImplByCuda(FDMatBatch* mat_batch);
 #endif

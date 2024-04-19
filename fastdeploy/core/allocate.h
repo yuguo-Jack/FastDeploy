@@ -33,7 +33,7 @@ class FASTDEPLOY_DECL FDHostFree {
   void operator()(void* ptr) const;
 };
 
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 
 class FASTDEPLOY_DECL FDDeviceAllocator {
  public:

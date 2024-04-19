@@ -15,6 +15,8 @@
 #include <cuda_runtime_api.h>
 #endif
 
+#include "fastdeploy/utils/gpu_macro.h"
+
 #include "fastdeploy/core/allocate.h"
 
 namespace fastdeploy {
@@ -26,19 +28,19 @@ bool FDHostAllocator::operator()(void** ptr, size_t size) const {
 
 void FDHostFree::operator()(void* ptr) const { free(ptr); }
 
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 
 bool FDDeviceAllocator::operator()(void** ptr, size_t size) const {
-  return cudaMalloc(ptr, size) == cudaSuccess;
+  return GPU(Malloc)(ptr, size) == GPU(Success);
 }
 
-void FDDeviceFree::operator()(void* ptr) const { cudaFree(ptr); }
+void FDDeviceFree::operator()(void* ptr) const { GPU(Free)(ptr); }
 
 bool FDDeviceHostAllocator::operator()(void** ptr, size_t size) const {
-  return cudaMallocHost(ptr, size) == cudaSuccess;
+  return GPU(MallocHost)(ptr, size) == GPU(Success);
 }
 
-void FDDeviceHostFree::operator()(void* ptr) const { cudaFreeHost(ptr); }
+void FDDeviceHostFree::operator()(void* ptr) const { GPU(FreeHost)(ptr); }
 
 #endif
 

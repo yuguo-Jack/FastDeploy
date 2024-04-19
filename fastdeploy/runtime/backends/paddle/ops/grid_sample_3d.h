@@ -18,7 +18,7 @@
 #include <cassert>
 #include <cmath>
 #include <vector>
-
+#include "fastdeploy/utils/gpu_macro.h"
 namespace fastdeploy {
 namespace paddle_custom_ops {
 

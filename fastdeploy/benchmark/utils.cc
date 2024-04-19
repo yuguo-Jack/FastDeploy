@@ -88,7 +88,7 @@ void ResourceUsageMonitor::Start() {
             std::max(max_cpu_mem_, static_cast<float>(res.ru_maxrss / 1024.0));
       }
 #endif
-#if defined(WITH_GPU)
+#if defined(WITH_GPU) || defined(WITH_DCU)
       std::string gpu_mem_info = GetCurrentGpuMemoryInfo(gpu_id_);
       // get max_gpu_mem and max_gpu_util
       std::vector<std::string> gpu_tokens;

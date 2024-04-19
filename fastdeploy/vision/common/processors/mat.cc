@@ -34,8 +34,8 @@ cv::Mat* Mat::GetOpenCVMat() {
     FDASSERT(false, "FastDeploy didn't compiled with FlyCV!");
 #endif
   } else if (mat_type == ProcLib::CUDA || mat_type == ProcLib::CVCUDA) {
-#ifdef WITH_GPU
-    FDASSERT(cudaStreamSynchronize(stream) == cudaSuccess,
+#if defined(WITH_GPU) || defined(WITH_DCU)
+    FDASSERT(GPU(StreamSynchronize)(stream) == GPU(Success),
              "[ERROR] Error occurs while sync cuda stream.");
     cpu_mat = CreateZeroCopyOpenCVMatFromTensor(*fd_tensor, layout);
     mat_type = ProcLib::OPENCV;
@@ -172,8 +172,8 @@ void Mat::PrintInfo(const std::string& flag) {
     }
     std::cout << std::endl;
   } else if (mat_type == ProcLib::CUDA || mat_type == ProcLib::CVCUDA) {
-#ifdef WITH_GPU
-    FDASSERT(cudaStreamSynchronize(stream) == cudaSuccess,
+#if defined(WITH_GPU) || defined(WITH_DCU)
+    FDASSERT(GPU(StreamSynchronize)(stream) == GPU(Success),
              "[ERROR] Error occurs while sync cuda stream.");
     cv::Mat tmp_mat = CreateZeroCopyOpenCVMatFromTensor(*fd_tensor, layout);
     cv::Scalar mean = cv::mean(tmp_mat);
@@ -303,7 +303,7 @@ bool CheckShapeConsistency(std::vector<Mat>* mats) {
 }
 
 FDTensor* CreateCachedGpuInputTensor(Mat* mat) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
   FDTensor* src = mat->Tensor();
   // Need to make sure the tensor is pointed to the input_cache.
   if (src->Data() == mat->output_cache->Data()) {
@@ -318,8 +318,8 @@ FDTensor* CreateCachedGpuInputTensor(Mat* mat) {
     mat->output_cache->Resize(src->Shape(), src->Dtype(), "output_cache",
                               Device::GPU);
     FDASSERT(
-        cudaMemcpyAsync(mat->output_cache->Data(), src->Data(), src->Nbytes(),
-                        cudaMemcpyHostToDevice, mat->Stream()) == 0,
+        GPU(MemcpyAsync)(mat->output_cache->Data(), src->Data(), src->Nbytes(),
+                        GPU(MemcpyHostToDevice), mat->Stream()) == 0,
         "[ERROR] Error occurs while copy memory from CPU to GPU.");
     std::swap(mat->input_cache, mat->output_cache);
     std::swap(mat->input_cache->name, mat->output_cache->name);

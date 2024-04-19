@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 
 #include "adaptive_pool2d_kernel.h"
 
@@ -63,7 +63,7 @@ void CudaAdaptivePool(const std::vector<int64_t>& input_dims,
                       const void* input, void* compute_stream,
                       const std::string& pooling_type, const std::string& dtype,
                       const std::string& out_dtype) {
-  auto casted_compute_stream = reinterpret_cast<cudaStream_t>(compute_stream);
+  auto casted_compute_stream = reinterpret_cast<GPU(Stream_t)>(compute_stream);
   int out_bc_offset = output_dims[2] * output_dims[3];
   int in_bc_offset = input_dims[2] * input_dims[3];
   int jobs = 1;

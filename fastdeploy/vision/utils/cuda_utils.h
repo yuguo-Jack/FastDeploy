@@ -13,16 +13,20 @@
 // limitations under the License.
 
 #pragma once
-
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
+#else
 #include <cuda_runtime.h>
+#endif
 #include <cstdint>
 #include <vector>
+#include "fastdeploy/utils/gpu_macro.h"
 
 #ifndef CUDA_CHECK
 #define CUDA_CHECK(callstr)\
   {\
-    cudaError_t error_code = callstr;\
-    if (error_code != cudaSuccess) {\
+    GPU(Error_t) error_code = callstr;\
+    if (error_code != GPU(Success)) {\
       std::cerr << "CUDA error " << error_code << " at " << __FILE__ << ":";\
       std::cerr << __LINE__;\
       assert(0);\
@@ -36,7 +40,7 @@ namespace utils {
 void CudaYoloPreprocess(uint8_t* src, int src_width, int src_height,
                         float* dst, int dst_width, int dst_height,
                         const std::vector<float> padding_value,
-                        cudaStream_t stream);
+                        GPU(Stream_t) stream);
 }  // namespace utils
 }  // namespace vision
 }  // namespace fastdeploy

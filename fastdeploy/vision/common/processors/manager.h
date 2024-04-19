@@ -18,6 +18,7 @@
 #include "fastdeploy/vision/common/processors/mat.h"
 #include "fastdeploy/vision/common/processors/mat_batch.h"
 #include "fastdeploy/vision/common/processors/base.h"
+#include "fastdeploy/utils/gpu_macro.h"
 
 namespace fastdeploy {
 namespace vision {
@@ -38,25 +39,25 @@ class FASTDEPLOY_DECL ProcessorManager {
 
   bool CudaUsed();
 
-#ifdef WITH_GPU
-  cudaStream_t Stream() const { return stream_; }
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  GPU(Stream_t) Stream() const { return stream_; }
 #endif
 
   void SetStream(FDMat* mat) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
     mat->SetStream(stream_);
 #endif
   }
 
   void SetStream(FDMatBatch* mat_batch) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
     mat_batch->SetStream(stream_);
 #endif
   }
 
   void SyncStream() {
-#ifdef WITH_GPU
-    FDASSERT(cudaStreamSynchronize(stream_) == cudaSuccess,
+#if defined(WITH_GPU) || defined(WITH_DCU)
+    FDASSERT(GPU(StreamSynchronize)(stream_) == GPU(Success),
              "[ERROR] Error occurs while sync cuda stream.");
 #endif
   }
@@ -88,8 +89,8 @@ class FASTDEPLOY_DECL ProcessorManager {
   ProcLib proc_lib_ = ProcLib::DEFAULT;
 
  private:
-#ifdef WITH_GPU
-  cudaStream_t stream_ = nullptr;
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  GPU(Stream_t) stream_ = nullptr;
 #endif
   int device_id_ = -1;
 

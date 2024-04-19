@@ -15,13 +15,19 @@
 
 #pragma once
 
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
+#include <hip/hip_fp16.h>
+#else
 #include <cuda_fp16.h>
-#include <cstdint>
 #include <cuda.h>
 #include <cuda_runtime.h>
+#endif
+#include <cstdint>
 #include <iostream>
 #include <math.h>
 #include <vector>
+#include "fastdeploy/utils/gpu_macro.h"
 
 namespace fastdeploy {
 

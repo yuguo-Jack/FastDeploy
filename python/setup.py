@@ -52,6 +52,7 @@ if os.getenv("BUILD_ON_CPU", "OFF") == "ON":
     os.environ["ENABLE_VISION"] = "ON"
     os.environ["ENABLE_TEXT"] = "ON"
     os.environ["WITH_GPU"] = "OFF"
+    os.environ["WITH_DCU"] = "OFF"
 
 setup_configs = dict()
 setup_configs["LIBRARY_NAME"] = PACKAGE_NAME
@@ -74,6 +75,7 @@ setup_configs["ENABLE_TEXT"] = os.getenv("ENABLE_TEXT", "OFF")
 setup_configs["ENABLE_BENCHMARK"] = os.getenv("ENABLE_BENCHMARK", "OFF")
 # Hardware options
 setup_configs["WITH_GPU"] = os.getenv("WITH_GPU", "OFF")
+setup_configs["WITH_DCU"] = os.getenv("WITH_DCU", "OFF")
 setup_configs["WITH_IPU"] = os.getenv("WITH_IPU", "OFF")
 setup_configs["WITH_OPENCL"] = os.getenv("WITH_OPENCL", "OFF")
 setup_configs["WITH_TIMVX"] = os.getenv("WITH_TIMVX", "OFF")
@@ -103,7 +105,7 @@ if setup_configs["RKNN2_TARGET_SOC"] != "" or setup_configs[
         "BUILD_ON_JETSON"] != "OFF":
     REQUIRED_PACKAGES = REQUIRED_PACKAGES.replace("opencv-python", "")
 
-if setup_configs["WITH_GPU"] == "ON" or setup_configs[
+if setup_configs["WITH_GPU"] == "ON" or setup_configs["WITH_DCU"] == "ON" or setup_configs[
         "BUILD_ON_JETSON"] == "ON":
     wheel_name = "fastdeploy-gpu-python"
 elif setup_configs["WITH_IPU"] == "ON":
@@ -156,7 +158,7 @@ with open(os.path.join(TOP_DIR, 'VERSION_NUMBER')) as version_file:
        extra_version_info=extra_version_info.strip("."),
        enable_trt_backend=setup_configs["ENABLE_TRT_BACKEND"],
        enable_paddle_backend=setup_configs["ENABLE_PADDLE_BACKEND"],
-       with_gpu=setup_configs["WITH_GPU"])
+       with_gpu="ON" if setup_configs["WITH_GPU"]=="ON" or setup_configs["WITH_DCU"]=="ON" else "OFF")
 
 ################################################################################
 # Pre Check

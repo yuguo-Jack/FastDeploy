@@ -9,6 +9,7 @@ set(NEED_ABI0 @NEED_ABI0@)
 
 # Hardware and Language API
 set(WITH_GPU @WITH_GPU@)
+set(WITH_DCU @WITH_DCU@)
 set(WITH_IPU @WITH_IPU@)
 set(WITH_OPENCL @WITH_OPENCL@)
 set(WITH_ASCEND @WITH_ASCEND@)
@@ -278,6 +279,11 @@ if(WITH_GPU)
     endif()
     list(APPEND FASTDEPLOY_LIBS ${TRT_INFER_LIB} ${TRT_ONNX_LIB} ${TRT_PLUGIN_LIB})
   endif()
+endif()
+
+if(WITH_DCU)
+  add_definitions(-DWITH_DCU)
+  include(${PROJECT_SOURCE_DIR}/cmake/hip.cmake)
 endif()
 
 if(ENABLE_VISION)

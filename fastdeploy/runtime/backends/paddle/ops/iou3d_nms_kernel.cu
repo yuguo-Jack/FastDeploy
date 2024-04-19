@@ -4,6 +4,7 @@ Written by Shaoshuai Shi
 All Rights Reserved 2019-2020.
 */
 #include <stdio.h>
+#include "fastdeploy/utils/gpu_macro.h"
 
 namespace fastdeploy {
 namespace paddle_custom_ops {
@@ -464,7 +465,7 @@ void boxesoverlapLauncher(const int num_a, const float *boxes_a,
   boxes_overlap_kernel<<<blocks, threads>>>(num_a, boxes_a, num_b, boxes_b,
                                             ans_overlap);
 #ifdef DEBUG
-  cudaDeviceSynchronize();  // for using printf in kernel function
+  GPU(DeviceSynchronize)();  // for using printf in kernel function
 #endif
 }
 
@@ -478,7 +479,7 @@ void boxesioubevLauncher(const int num_a, const float *boxes_a, const int num_b,
   boxes_iou_bev_kernel<<<blocks, threads>>>(num_a, boxes_a, num_b, boxes_b,
                                             ans_iou);
 #ifdef DEBUG
-  cudaDeviceSynchronize();  // for using printf in kernel function
+  GPU(DeviceSynchronize)();  // for using printf in kernel function
 #endif
 }
 
@@ -568,7 +569,7 @@ __global__ void nms_kernel_centerpoint(const int num_bboxes,
   }
 }
 
-void NmsLauncher(const cudaStream_t &stream, const float *bboxes,
+void NmsLauncher(const GPU(Stream_t) &stream, const float *bboxes,
                  const int *index, const int64_t *sorted_index,
                  const int num_bboxes, const int num_bboxes_for_nms,
                  const float nms_overlap_thresh, const int decode_bboxes_dims,

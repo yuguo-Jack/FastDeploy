@@ -14,9 +14,15 @@
 
 #include "fastdeploy/runtime/backends/poros/poros_backend.h"
 
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
+#endif
+
 #ifdef WITH_GPU
 #include <cuda_runtime_api.h>
 #endif
+
+#include "fastdeploy/utils/gpu_macro.h"
 
 namespace fastdeploy {
 
@@ -98,32 +104,32 @@ at::Tensor CreatePorosValue(FDTensor& tensor, bool is_backend_cuda) {
   }
   if (data_type == at::kFloat) {
     if (is_backend_cuda) {
-      cudaMemcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
-                 numel * sizeof(float), cudaMemcpyHostToDevice);
+      GPU(Memcpy)(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
+                 numel * sizeof(float), GPU(MemcpyHostToDevice));
     } else {
       memcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
              numel * sizeof(float));
     }
   } else if (data_type == at::kInt) {
     if (is_backend_cuda) {
-      cudaMemcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
-                 numel * sizeof(int32_t), cudaMemcpyHostToDevice);
+      GPU(Memcpy)(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
+                 numel * sizeof(int32_t), GPU(MemcpyHostToDevice));
     } else {
       memcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
              numel * sizeof(int32_t));
     }
   } else if (data_type == at::kLong) {
     if (is_backend_cuda) {
-      cudaMemcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
-                 numel * sizeof(int64_t), cudaMemcpyHostToDevice);
+      GPU(Memcpy)(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
+                 numel * sizeof(int64_t), GPU(MemcpyHostToDevice));
     } else {
       memcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
              numel * sizeof(int64_t));
     }
   } else if (data_type == at::kDouble) {
     if (is_backend_cuda) {
-      cudaMemcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
-                 numel * sizeof(double), cudaMemcpyHostToDevice);
+      GPU(Memcpy)(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
+                 numel * sizeof(double), GPU(MemcpyHostToDevice));
     } else {
       memcpy(poros_value.data_ptr(), static_cast<void*>(tensor.Data()),
              numel * sizeof(double));
@@ -150,32 +156,32 @@ void CopyTensorToCpu(const at::Tensor& tensor, FDTensor* fd_tensor,
   // at::Tensor -> FDTensor
   if (data_type == at::kFloat) {
     if (is_backend_cuda) {
-      cudaMemcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(float),
-                 cudaMemcpyDeviceToHost);
+      GPU(Memcpy)(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(float),
+                 GPU(MemcpyDeviceToHost));
     } else {
       memcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(float));
     }
     return;
   } else if (data_type == at::kInt) {
     if (is_backend_cuda) {
-      cudaMemcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(int32_t),
-                 cudaMemcpyDeviceToHost);
+      GPU(Memcpy)(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(int32_t),
+                 GPU(MemcpyDeviceToHost));
     } else {
       memcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(int32_t));
     }
     return;
   } else if (data_type == at::kLong) {
     if (is_backend_cuda) {
-      cudaMemcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(int64_t),
-                 cudaMemcpyDeviceToHost);
+      GPU(Memcpy)(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(int64_t),
+                 GPU(MemcpyDeviceToHost));
     } else {
       memcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(int64_t));
     }
     return;
   } else if (data_type == at::kDouble) {
     if (is_backend_cuda) {
-      cudaMemcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(double),
-                 cudaMemcpyDeviceToHost);
+      GPU(Memcpy)(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(double),
+                 GPU(MemcpyDeviceToHost));
     } else {
       memcpy(fd_tensor->Data(), tensor.data_ptr(), numel * sizeof(double));
     }

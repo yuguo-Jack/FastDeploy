@@ -56,6 +56,7 @@ endif()
 
 ############################# Basic Options for FastDeploy ################################
 option(WITH_GPU "Whether WITH_GPU=ON, will enable onnxruntime-gpu/paddle-infernce-gpu/poros-gpu" OFF)
+option(WITH_DCU "Whether WITH_DCU=ON, will enable paddle-infernce-gpu" OFF)
 option(WITH_IPU "Whether WITH_IPU=ON, will enable paddle-infernce-ipu" OFF)
 option(WITH_OPENCL "Whether WITH_OPENCL=ON, will enable paddle-lite-gpu" OFF)
 option(ENABLE_ORT_BACKEND "Whether to enable onnxruntime backend." OFF)
@@ -180,7 +181,7 @@ file(GLOB_RECURSE DEPLOY_VISION_SRCS ${PROJECT_SOURCE_DIR}/${CSRCS_DIR_NAME}/fas
 file(GLOB_RECURSE DEPLOY_TEXT_SRCS ${PROJECT_SOURCE_DIR}/${CSRCS_DIR_NAME}/fastdeploy/text/*.cc)
 file(GLOB_RECURSE DEPLOY_PYBIND_SRCS ${PROJECT_SOURCE_DIR}/${CSRCS_DIR_NAME}/fastdeploy/pybind/*.cc ${PROJECT_SOURCE_DIR}/${CSRCS_DIR_NAME}/fastdeploy/*_pybind.cc)
 file(GLOB_RECURSE DEPLOY_PADDLE_CUSTOM_OP_SRCS ${PROJECT_SOURCE_DIR}/${CSRCS_DIR_NAME}/fastdeploy/runtime/backends/paddle/ops/*.cc)
-if(WITH_GPU)
+if(WITH_GPU OR WITH_DCU)
   file(GLOB_RECURSE DEPLOY_CUDA_SRCS ${PROJECT_SOURCE_DIR}/${CSRCS_DIR_NAME}/fastdeploy/*.cu)
   list(APPEND ALL_DEPLOY_SRCS ${DEPLOY_CUDA_SRCS})
   file(GLOB_RECURSE DEPLOY_PADDLE_CUSTOM_OP_CUDA_SRCS ${PROJECT_SOURCE_DIR}/${CSRCS_DIR_NAME}/fastdeploy/runtime/backends/paddle/ops/*.cu)
@@ -253,7 +254,7 @@ if(ENABLE_PADDLE_BACKEND)
   if(PADDLEINFERENCE_API_CUSTOM_OP)
     set_paddle_custom_ops_compatible_policy()
     list(APPEND ALL_DEPLOY_SRCS ${DEPLOY_PADDLE_CUSTOM_OP_SRCS})
-    if(WITH_GPU)
+    if(WITH_GPU OR WITH_DCU)
       list(APPEND ALL_DEPLOY_SRCS ${DEPLOY_PADDLE_CUSTOM_OP_CUDA_SRCS})
     endif()
   endif()
@@ -358,6 +359,11 @@ if(WITH_GPU)
   message(STATUS "CUDA compiler: ${CMAKE_CUDA_COMPILER}, version: "
                   "${CMAKE_CUDA_COMPILER_ID} ${CMAKE_CUDA_COMPILER_VERSION}")
   include(${PROJECT_SOURCE_DIR}/cmake/cuda.cmake)
+endif()
+
+if(WITH_DCU)
+  add_definitions(-DWITH_DCU)
+  include(${PROJECT_SOURCE_DIR}/cmake/hip.cmake)
 endif()
 
 if(WITH_OPENCL)
@@ -501,7 +507,11 @@ configure_file(${PROJECT_SOURCE_DIR}/python/scripts/process_libraries.py.in ${PR
 
 list(REMOVE_ITEM ALL_DEPLOY_SRCS ${DEPLOY_PYBIND_SRCS})
 
-add_library(${LIBRARY_NAME} SHARED ${ALL_DEPLOY_SRCS})
+if(WITH_DCU)
+  hip_add_library(${LIBRARY_NAME} SHARED ${ALL_DEPLOY_SRCS})
+else()
+  add_library(${LIBRARY_NAME} SHARED ${ALL_DEPLOY_SRCS})
+endif()
 
 redefine_file_macro(${LIBRARY_NAME})
 

@@ -12,10 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#if defined(WITH_GPU)
+#if defined(WITH_GPU) || defined(WITH_DCU)
 
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
+#else
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#endif
 
 #if defined(PADDLEINFERENCE_API_COMPAT_2_4_x)
 #include "paddle/include/experimental/ext_all.h"

@@ -17,19 +17,19 @@ namespace fastdeploy {
 namespace vision {
 
 ProcessorManager::~ProcessorManager() {
-#ifdef WITH_GPU
-  if (stream_) cudaStreamDestroy(stream_);
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  if (stream_) GPU(StreamDestroy)(stream_);
 #endif
 }
 
 void ProcessorManager::UseCuda(bool enable_cv_cuda, int gpu_id) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
   if (gpu_id >= 0) {
     device_id_ = gpu_id;
-    FDASSERT(cudaSetDevice(device_id_) == cudaSuccess,
+    FDASSERT(GPU(SetDevice)(device_id_) == GPU(Success),
              "[ERROR] Error occurs while setting cuda device.");
   }
-  FDASSERT(cudaStreamCreate(&stream_) == cudaSuccess,
+  FDASSERT(GPU(StreamCreate)(&stream_) == GPU(Success),
            "[ERROR] Error occurs while creating cuda stream.");
   proc_lib_ = ProcLib::CUDA;
 #else

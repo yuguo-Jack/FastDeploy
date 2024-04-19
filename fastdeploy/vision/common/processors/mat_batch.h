@@ -13,11 +13,13 @@
 // limitations under the License.
 #pragma once
 #include "fastdeploy/vision/common/processors/mat.h"
-
+#include "fastdeploy/utils/gpu_macro.h"
 #ifdef WITH_GPU
 #include <cuda_runtime_api.h>
 #endif
-
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
+#endif
 namespace fastdeploy {
 namespace vision {
 
@@ -43,8 +45,8 @@ struct FASTDEPLOY_DECL FDMatBatch {
   void SetTensor(FDTensor* tensor);
 
  private:
-#ifdef WITH_GPU
-  cudaStream_t stream = nullptr;
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  GPU(Stream_t) stream = nullptr;
 #endif
   std::shared_ptr<FDTensor> fd_tensor = std::make_shared<FDTensor>();
 
@@ -53,9 +55,9 @@ struct FASTDEPLOY_DECL FDMatBatch {
   // refer to manager.cc
   FDTensor* input_cache;
   FDTensor* output_cache;
-#ifdef WITH_GPU
-  cudaStream_t Stream() const { return stream; }
-  void SetStream(cudaStream_t s);
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  GPU(Stream_t) Stream() const { return stream; }
+  void SetStream(GPU(Stream_t) s);
 #endif
 
   std::vector<FDMat>* mats = nullptr;

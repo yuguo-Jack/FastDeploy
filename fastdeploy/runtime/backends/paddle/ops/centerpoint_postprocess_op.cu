@@ -19,7 +19,7 @@
 #else
 #include "paddle/extension.h"
 #endif
-
+#include "fastdeploy/utils/gpu_macro.h"
 namespace fastdeploy {
 namespace paddle_custom_ops {
 
@@ -34,7 +34,7 @@ __host__ __device__ static inline int DIVUP(const int m, const int n)
 
 static const int THREADS_PER_BLOCK_NMS = sizeof(int64_t) * 8;
 
-void NmsLauncher(const cudaStream_t &stream, const float *bboxes,
+void NmsLauncher(const GPU(Stream_t) &stream, const float *bboxes,
                  const int *index, const int64_t *sorted_index,
                  const int num_bboxes, const int num_bboxes_for_nms,
                  const float nms_overlap_thresh, const int decode_bboxes_dims,
@@ -91,7 +91,7 @@ __global__ void decode_kernel(
 }
 
 void DecodeLauncher(
-    const cudaStream_t &stream, const float *score, const float *reg,
+    const GPU(Stream_t) &stream, const float *score, const float *reg,
     const float *height, const float *dim, const float *vel, const float *rot,
     const float score_threshold, const int feat_w, const float down_ratio,
     const float voxel_size_x, const float voxel_size_y,
@@ -155,7 +155,7 @@ std::vector<paddle::Tensor> postprocess_gpu(
     // score and label
     auto sigmoid_hm_per_task = paddle::experimental::sigmoid(hm[task_id]);
     auto label_per_task =
-        paddle::experimental::argmax(sigmoid_hm_per_task, 1, true, false, 3);
+        paddle::experimental::argmax(sigmoid_hm_per_task, 1, true, false, (paddle::DataType)3);
     auto score_per_task =
         paddle::experimental::max(sigmoid_hm_per_task, {1}, true);
     // dim
@@ -260,8 +260,8 @@ std::vector<paddle::Tensor> postprocess_gpu(
     auto keep_gpu = paddle::empty({num_for_gather}, paddle::DataType::INT32,
                                   paddle::GPUPlace());
     int *keep_gpu_ptr = keep_gpu.data<int>();
-    cudaMemcpy(keep_gpu_ptr, keep_data, num_for_gather * sizeof(int),
-               cudaMemcpyHostToDevice);
+    GPU(Memcpy)(keep_gpu_ptr, keep_data, num_for_gather * sizeof(int),
+               GPU(MemcpyHostToDevice));
 
     auto gather_sorted_index =
         paddle::experimental::gather(sorted_index, keep_gpu, 0);

@@ -86,7 +86,7 @@ void AdaptivePool2dKernel::Compute(OrtKernelContext* context) {
 #endif
   float* output_data = output.GetTensorMutableData<float>();
   if (!strcmp(this->provider_, "CUDAExecutionProvider")) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
     auto compute_stream =
 #if ORT_API_VERSION >= 14
         ort_context.GetGPUComputeStream();

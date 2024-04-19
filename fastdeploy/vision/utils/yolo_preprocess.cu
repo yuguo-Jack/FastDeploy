@@ -21,7 +21,7 @@
 // \brief
 // \author Qi Liu, Xinyu Wang
 
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 #include <opencv2/opencv.hpp>
 
 #include "fastdeploy/vision/utils/cuda_utils.h"
@@ -115,7 +115,7 @@ __global__ void YoloPreprocessCudaKernel(
 void CudaYoloPreprocess(uint8_t* src, int src_width, int src_height, float* dst,
                         int dst_width, int dst_height,
                         const std::vector<float> padding_value,
-                        cudaStream_t stream) {
+                        GPU(Stream_t) stream) {
   AffineMatrix s2d, d2s;
   float scale =
       std::min(dst_height / (float)src_height, dst_width / (float)src_width);

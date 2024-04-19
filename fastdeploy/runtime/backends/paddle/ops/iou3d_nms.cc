@@ -18,10 +18,14 @@ Written by Shaoshuai Shi
 All Rights Reserved 2019-2020.
 */
 
-#if defined(WITH_GPU)
+#if defined(WITH_GPU) || defined(WITH_DCU)
 
+#ifdef WITH_DCU
+#include <hip/hip_runtime.h>
+#else
 #include <cuda.h>
 #include <cuda_runtime_api.h>
+#endif
 
 #include "iou3d_nms.h"
 
@@ -35,10 +39,10 @@ static inline int DIVUP(const int m, const int n)
 
 #define CHECK_ERROR(ans) \
   { gpuAssert((ans), __FILE__, __LINE__); }
-inline void gpuAssert(cudaError_t code, const char *file, int line,
+inline void gpuAssert(GPU(Error_t) code, const char *file, int line,
                       bool abort = true) {
-  if (code != cudaSuccess) {
-    fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file,
+  if (code != GPU(Success)) {
+    fprintf(stderr, "GPUassert: %s %s %d\n", GPU(GetErrorString)(code), file,
             line);
     if (abort) exit(code);
   }
@@ -124,7 +128,7 @@ std::vector<paddle::Tensor> nms_gpu(const paddle::Tensor &boxes,
   int col_blocks = DIVUP(boxes_num, THREADS_PER_BLOCK_NMS);
 
   unsigned long long *mask_data = NULL;
-  CHECK_ERROR(cudaMalloc((void **)&mask_data,
+  CHECK_ERROR(GPU(Malloc)((void **)&mask_data,
                          boxes_num * col_blocks * sizeof(unsigned long long)));
   nmsLauncher(boxes_data, mask_data, boxes_num, nms_overlap_thresh);
 
@@ -134,11 +138,11 @@ std::vector<paddle::Tensor> nms_gpu(const paddle::Tensor &boxes,
   std::vector<unsigned long long> mask_cpu(boxes_num * col_blocks);
 
   //    printf("boxes_num=%d, col_blocks=%d\n", boxes_num, col_blocks);
-  CHECK_ERROR(cudaMemcpy(&mask_cpu[0], mask_data,
+  CHECK_ERROR(GPU(Memcpy)(&mask_cpu[0], mask_data,
                          boxes_num * col_blocks * sizeof(unsigned long long),
-                         cudaMemcpyDeviceToHost));
+                         GPU(MemcpyDeviceToHost)));
 
-  cudaFree(mask_data);
+  GPU(Free)(mask_data);
    
   // WARN(qiuyanjun): codes below will throw a compile error on windows with 
   // msvc. Thus, we choosed to use std::vectored to store the result instead.
@@ -163,7 +167,7 @@ std::vector<paddle::Tensor> nms_gpu(const paddle::Tensor &boxes,
 
   num_to_keep_data[0] = num_to_keep;
 
-  if (cudaSuccess != cudaGetLastError()) printf("Error!\n");
+  if (GPU(Success) != GPU(GetLastError)()) printf("Error!\n");
 
   return {keep, num_to_keep_tensor};
 }
@@ -190,7 +194,7 @@ int nms_normal_gpu(paddle::Tensor boxes, paddle::Tensor keep,
   int col_blocks = DIVUP(boxes_num, THREADS_PER_BLOCK_NMS);
 
   unsigned long long *mask_data = NULL;
-  CHECK_ERROR(cudaMalloc((void **)&mask_data,
+  CHECK_ERROR(GPU(Malloc)((void **)&mask_data,
                          boxes_num * col_blocks * sizeof(unsigned long long)));
   nmsNormalLauncher(boxes_data, mask_data, boxes_num, nms_overlap_thresh);
 
@@ -200,11 +204,11 @@ int nms_normal_gpu(paddle::Tensor boxes, paddle::Tensor keep,
   std::vector<unsigned long long> mask_cpu(boxes_num * col_blocks);
 
   //    printf("boxes_num=%d, col_blocks=%d\n", boxes_num, col_blocks);
-  CHECK_ERROR(cudaMemcpy(&mask_cpu[0], mask_data,
+  CHECK_ERROR(GPU(Memcpy)(&mask_cpu[0], mask_data,
                          boxes_num * col_blocks * sizeof(unsigned long long),
-                         cudaMemcpyDeviceToHost));
+                         GPU(MemcpyDeviceToHost)));
 
-  cudaFree(mask_data);
+  GPU(Free)(mask_data);
 
   // WARN(qiuyanjun): codes below will throw a compile error on windows with 
   // msvc. Thus, we choosed to use std::vectored to store the result instead.
@@ -226,7 +230,7 @@ int nms_normal_gpu(paddle::Tensor boxes, paddle::Tensor keep,
       }
     }
   }
-  if (cudaSuccess != cudaGetLastError()) printf("Error!\n");
+  if (GPU(Success) != GPU(GetLastError)()) printf("Error!\n");
 
   return num_to_keep;
 }

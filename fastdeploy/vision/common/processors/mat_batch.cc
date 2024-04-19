@@ -16,8 +16,8 @@
 namespace fastdeploy {
 namespace vision {
 
-#ifdef WITH_GPU
-void FDMatBatch::SetStream(cudaStream_t s) {
+#if defined(WITH_GPU) || defined(WITH_DCU)
+void FDMatBatch::SetStream(GPU(Stream_t) s) {
   stream = s;
   for (size_t i = 0; i < mats->size(); ++i) {
     (*mats)[i].SetStream(s);
@@ -58,7 +58,7 @@ void FDMatBatch::SetTensor(FDTensor* tensor) {
 }
 
 FDTensor* CreateCachedGpuInputTensor(FDMatBatch* mat_batch) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
   // Get the batched tensor
   FDTensor* src = mat_batch->Tensor();
   // Need to make sure the returned tensor is pointed to the input_cache.
@@ -72,8 +72,8 @@ FDTensor* CreateCachedGpuInputTensor(FDMatBatch* mat_batch) {
     // Batched tensor on CPU, we need copy it to GPU
     mat_batch->output_cache->Resize(src->Shape(), src->Dtype(), "output_cache",
                                     Device::GPU);
-    FDASSERT(cudaMemcpyAsync(mat_batch->output_cache->Data(), src->Data(),
-                             src->Nbytes(), cudaMemcpyHostToDevice,
+    FDASSERT(GPU(MemcpyAsync)(mat_batch->output_cache->Data(), src->Data(),
+                             src->Nbytes(), GPU(MemcpyHostToDevice),
                              mat_batch->Stream()) == 0,
              "[ERROR] Error occurs while copy memory from CPU to GPU.");
     std::swap(mat_batch->input_cache, mat_batch->output_cache);

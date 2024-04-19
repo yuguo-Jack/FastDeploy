@@ -24,7 +24,7 @@
 #ifndef NON_64_PLATFORM
 #include "onnxruntime_cxx_api.h"  // NOLINT
 
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 #include "fastdeploy/runtime/backends/common/cuda/adaptive_pool2d_kernel.h"
 #endif
 

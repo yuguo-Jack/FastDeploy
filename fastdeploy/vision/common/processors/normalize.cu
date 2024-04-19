@@ -12,9 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 #include "fastdeploy/vision/common/processors/normalize.h"
-
+#include "fastdeploy/utils/gpu_macro.h"
 namespace fastdeploy {
 namespace vision {
 
@@ -78,13 +78,13 @@ bool Normalize::ImplByCuda(FDMatBatch* mat_batch) {
   // Copy alpha and beta to GPU
   gpu_alpha_.Resize({1, 1, static_cast<int>(alpha_.size())}, FDDataType::FP32,
                     "alpha", Device::GPU);
-  cudaMemcpy(gpu_alpha_.Data(), alpha_.data(), gpu_alpha_.Nbytes(),
-             cudaMemcpyHostToDevice);
+  GPU(Memcpy)(gpu_alpha_.Data(), alpha_.data(), gpu_alpha_.Nbytes(),
+             GPU(MemcpyHostToDevice));
 
   gpu_beta_.Resize({1, 1, static_cast<int>(beta_.size())}, FDDataType::FP32,
                    "beta", Device::GPU);
-  cudaMemcpy(gpu_beta_.Data(), beta_.data(), gpu_beta_.Nbytes(),
-             cudaMemcpyHostToDevice);
+  GPU(Memcpy)(gpu_beta_.Data(), beta_.data(), gpu_beta_.Nbytes(),
+             GPU(MemcpyHostToDevice));
 
   int jobs =
       mat_batch->output_cache->Numel() / mat_batch->output_cache->shape[3];

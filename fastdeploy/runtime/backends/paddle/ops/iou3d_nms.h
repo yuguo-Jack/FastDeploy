@@ -23,8 +23,9 @@
 #endif
 
 #include "fastdeploy/utils/utils.h"
+#include "fastdeploy/utils/gpu_macro.h"
 
-#if defined(WITH_GPU)
+#if defined(WITH_GPU) || defined(WITH_DCU)
 namespace fastdeploy {
 namespace paddle_custom_ops {
 

@@ -12,8 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 #include "fastdeploy/function/cuda_cast.h"
+#include "fastdeploy/utils/gpu_macro.h"
 namespace fastdeploy {
 namespace function {
 template <typename T_IN, typename T_OUT>
@@ -23,7 +24,7 @@ __global__ void CudaCastKernel(const T_IN* in, T_OUT* out, int edge) {
   out[position] = (T_OUT)in[position];
 }
 
-void CudaCast(const FDTensor& in, FDTensor* out, cudaStream_t stream) {
+void CudaCast(const FDTensor& in, FDTensor* out, GPU(Stream_t) stream) {
   int jobs = in.Numel();
   int threads = 256;
   int blocks = ceil(jobs / (float)threads);

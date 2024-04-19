@@ -15,6 +15,7 @@
 #pragma once
 
 #include "fastdeploy/core/fd_tensor.h"
+#include "fastdeploy/utils/gpu_macro.h"
 
 namespace fastdeploy {
 namespace function {
@@ -24,6 +25,6 @@ namespace function {
     @param stream CUDA stream
 */
 FASTDEPLOY_DECL void CudaCast(const FDTensor& in, FDTensor* out,
-                              cudaStream_t stream);
+                              GPU(Stream_t) stream);
 }  // namespace function
 }  // namespace fastdeploy

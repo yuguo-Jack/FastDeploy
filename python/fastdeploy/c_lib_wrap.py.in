@@ -20,7 +20,7 @@ user_specified_dirs = ['@OPENCV_DIRECTORY@', '@ORT_DIRECTORY@', ]
 
 
 def is_built_with_gpu() -> bool:
-    return True if "@WITH_GPU@" == "ON" else False
+    return True if "@WITH_GPU@" == "ON" or "@WITH_DCU@" == "ON" else False
 
 
 def is_built_with_ort() -> bool:

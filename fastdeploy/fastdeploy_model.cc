@@ -168,7 +168,7 @@ bool FastDeployModel::InitRuntimeWithSpecifiedDevice() {
   if (runtime_option.device == Device::CPU) {
     return CreateCpuBackend();
   } else if (runtime_option.device == Device::GPU) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
     return CreateGpuBackend();
 #else
     FDERROR << "The compiled FastDeploy library doesn't support GPU now."
@@ -196,12 +196,12 @@ bool FastDeployModel::InitRuntimeWithSpecifiedDevice() {
     FDERROR << "The compiled FastDeploy library doesn't support IPU now."
             << std::endl;
     return false;
-#endif
-  }
+#endif 
   FDERROR << "Only support "
              "CPU/GPU/IPU/RKNPU/HORIZONNPU/TIMVX/KunlunXin/ASCEND/DirectML now."
           << std::endl;
   return false;
+  }
 }
 
 bool FastDeployModel::InitRuntime() {

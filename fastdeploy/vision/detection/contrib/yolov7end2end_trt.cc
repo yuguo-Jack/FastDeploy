@@ -16,7 +16,7 @@
 
 #include "fastdeploy/utils/perf.h"
 #include "fastdeploy/vision/utils/utils.h"
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
 #include "fastdeploy/vision/utils/cuda_utils.h"
 #endif  // WITH_GPU
 
@@ -89,10 +89,10 @@ YOLOv7End2EndTRT::YOLOv7End2EndTRT(const std::string& model_file,
       runtime_option.backend = Backend::TRT;
     }
   }
-#ifdef WITH_GPU
-  cudaSetDevice(runtime_option.device_id);
-  cudaStream_t stream;
-  CUDA_CHECK(cudaStreamCreate(&stream));
+#if defined(WITH_GPU) || defined(WITH_DCU)
+  GPU(SetDevice)(runtime_option.device_id);
+  GPU(Stream_t) stream;
+  CUDA_CHECK(GPU(StreamCreate)(&stream));
   cuda_stream_ = reinterpret_cast<void*>(stream);
   runtime_option.SetExternalStream(cuda_stream_);
 #endif  // WITH_GPU
@@ -132,12 +132,12 @@ bool YOLOv7End2EndTRT::Initialize() {
 }
 
 YOLOv7End2EndTRT::~YOLOv7End2EndTRT() {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
   if (use_cuda_preprocessing_) {
-    CUDA_CHECK(cudaFreeHost(input_img_cuda_buffer_host_));
-    CUDA_CHECK(cudaFree(input_img_cuda_buffer_device_));
-    CUDA_CHECK(cudaFree(input_tensor_cuda_buffer_device_));
-    CUDA_CHECK(cudaStreamDestroy(reinterpret_cast<cudaStream_t>(cuda_stream_)));
+    CUDA_CHECK(GPU(FreeHost)(input_img_cuda_buffer_host_));
+    CUDA_CHECK(GPU(Free)(input_img_cuda_buffer_device_));
+    CUDA_CHECK(GPU(Free)(input_tensor_cuda_buffer_device_));
+    CUDA_CHECK(GPU(StreamDestroy)(reinterpret_cast<GPU(Stream_t)>(cuda_stream_)));
   }
 #endif  // WITH_GPU
 }
@@ -174,17 +174,17 @@ bool YOLOv7End2EndTRT::Preprocess(
 }
 
 void YOLOv7End2EndTRT::UseCudaPreprocessing(int max_image_size) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
   use_cuda_preprocessing_ = true;
   is_scale_up = true;
   if (input_img_cuda_buffer_host_ == nullptr) {
     // prepare input data cache in GPU pinned memory
-    CUDA_CHECK(cudaMallocHost((void**)&input_img_cuda_buffer_host_,
+    CUDA_CHECK(GPU(MallocHost)((void**)&input_img_cuda_buffer_host_,
                               max_image_size * 3));
     // prepare input data cache in GPU device memory
     CUDA_CHECK(
-        cudaMalloc((void**)&input_img_cuda_buffer_device_, max_image_size * 3));
-    CUDA_CHECK(cudaMalloc((void**)&input_tensor_cuda_buffer_device_,
+        GPU(Malloc)((void**)&input_img_cuda_buffer_device_, max_image_size * 3));
+    CUDA_CHECK(GPU(Malloc)((void**)&input_tensor_cuda_buffer_device_,
                           3 * size[0] * size[1] * sizeof(float)));
   }
 #else
@@ -196,7 +196,7 @@ void YOLOv7End2EndTRT::UseCudaPreprocessing(int max_image_size) {
 bool YOLOv7End2EndTRT::CudaPreprocess(
     Mat* mat, FDTensor* output,
     std::map<std::string, std::array<float, 2>>* im_info) {
-#ifdef WITH_GPU
+#if defined(WITH_GPU) || defined(WITH_DCU)
   if (is_mini_pad != false || is_no_pad != false || is_scale_up != true) {
     FDERROR << "Preprocessing with CUDA is only available when the arguments "
                "satisfy (is_mini_pad=false, is_no_pad=false, is_scale_up=true)."
@@ -210,12 +210,12 @@ bool YOLOv7End2EndTRT::CudaPreprocess(
   (*im_info)["output_shape"] = {static_cast<float>(mat->Height()),
                                 static_cast<float>(mat->Width())};
 
-  cudaStream_t stream = reinterpret_cast<cudaStream_t>(cuda_stream_);
+  GPU(Stream_t) stream = reinterpret_cast<GPU(Stream_t)>(cuda_stream_);
   int src_img_buf_size = mat->Height() * mat->Width() * mat->Channels();
   memcpy(input_img_cuda_buffer_host_, mat->Data(), src_img_buf_size);
-  CUDA_CHECK(cudaMemcpyAsync(input_img_cuda_buffer_device_,
+  CUDA_CHECK(GPU(MemcpyAsync)(input_img_cuda_buffer_device_,
                              input_img_cuda_buffer_host_, src_img_buf_size,
-                             cudaMemcpyHostToDevice, stream));
+                             GPU(MemcpyHostToDevice), stream));
   utils::CudaYoloPreprocess(input_img_cuda_buffer_device_, mat->Width(),
                             mat->Height(), input_tensor_cuda_buffer_device_,
                             size[0], size[1], padding_value, stream);

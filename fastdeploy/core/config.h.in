@@ -41,6 +41,10 @@
 #cmakedefine WITH_GPU
 #endif
 
+#ifndef WITH_DCU
+#cmakedefine WITH_DCU
+#endif
+
 #ifndef WITH_KUNLUNXIN
 #cmakedefine WITH_KUNLUNXIN
 #endif
